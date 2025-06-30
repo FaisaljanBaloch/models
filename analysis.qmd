@@ -13,6 +13,7 @@ library(tidymodels)
 library(broom)
 library(easystats)
 library(gt)
+library(marginaleffects)
 
 poll_data <- tibble(biden = as.factor(c(rep("Yes", 655), rep("No", 904)))) |>
   slice_sample(prop = 1)
@@ -24,7 +25,35 @@ fit_biden <- logistic_reg() |>
     fit(biden ~ 1, data = poll_data)
 ```
 
-U.S Elections are more about a competition between Republication and Democratic parties than general elections. Using the data of voters in the 2024 U.S. presidential election, I seek to predict what proportion of all votes will be cast for Joe Biden in November election. While samples containing some certain groups by age or region than their share of the population, create a representativeness gap. I model Biden support, a binary outcome variable to express whether a voter voted Biden or not, as a logistic function with no covariates, capturing the overall proportion of support in the population. The outcome values ‘Yes’ means respondent supports Biden and ‘No’ for non-supporters.
+```{r}
+avg_predictions(fit_biden, type = "prob") |>
+    filter(group == 'Yes') |>
+    ggplot(aes(x = 1, y = estimate, ymin = conf.low, ymax = conf.high)) +
+    geom_pointrange(size = 1.2, color = "#212121") +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1),
+                     breaks = seq(0.38, 0.46, by = 0.02),
+                     limits = c(0.37, 0.47)) + # Adjust y-axis limits and breaks
+  labs(
+    title = "Support for President Biden in March 2024",
+    subtitle = "42% is not a good sign for an incumbent seeking reelection",
+    caption = "Source: YouGov poll, March 2024.",
+    y = "Probability"
+  ) +
+  theme_minimal() + # Use a minimal theme
+  theme(
+    axis.title.x = element_blank(), # Remove x-axis title
+    axis.text.x = element_blank(), # Remove x-axis text/labels
+    axis.ticks.x = element_blank(), # Remove x-axis ticks
+    panel.grid.major.x = element_blank(), # Remove major x-axis grid lines
+    panel.grid.minor.x = element_blank(), # Remove minor x-axis grid lines
+    panel.grid.minor.y = element_blank(), # Remove minor y-axis grid lines
+    plot.title = element_text(hjust = 0, size = 16, face = "bold"), # Left-align and style title
+    plot.subtitle = element_text(hjust = 0, size = 14), # Left-align and style subtitle
+    plot.caption = element_text(hjust = 1, size = 10) # Right-align and style caption
+  )
+```
+
+U.S Elections are more about a competition between Republication and Democratic parties than general elections. Using the data of voters in the 2024 U.S. presidential election, I seek to predict what proportion of all votes will be cast for Joe Biden in November election. While samples containing some certain groups by age or region than their share of the population, create a representativeness gap. I model Biden support, a binary outcome variable to express whether a voter voted Biden or not, as a logistic function with no covariates, capturing the overall proportion of support in the population. The outcome values ‘Yes’ means respondent supports Biden and ‘No’ for non-supporters. We estimate that around 42% are will support Joe Biden in November election, with a 95% confidence interval ranging from 40% to 45%.
 
 $$
 \text{logit}(\Pr(Y = 1 \mid X_1, X_2, \dots, X_k)) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_k X_k
