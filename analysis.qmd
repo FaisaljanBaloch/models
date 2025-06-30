@@ -12,6 +12,7 @@ library(tidyverse)
 library(tidymodels)
 library(broom)
 library(easystats)
+library(gt)
 
 poll_data <- tibble(biden = as.factor(c(rep("Yes", 655), rep("No", 904)))) |>
   slice_sample(prop = 1)
@@ -23,7 +24,7 @@ fit_biden <- logistic_reg() |>
     fit(biden ~ 1, data = poll_data)
 ```
 
-U.S Elections are more about a competition between Republication and Democratic parties than general elections. Using the data of voters in the 2024 U.S. presidential election, I seek to predict what proportion of all votes will be cast for Joe Biden in November election. While samples containing some certain groups by age or region than their share of the population, create a representativeness gap.
+U.S Elections are more about a competition between Republication and Democratic parties than general elections. Using the data of voters in the 2024 U.S. presidential election, I seek to predict what proportion of all votes will be cast for Joe Biden in November election. While samples containing some certain groups by age or region than their share of the population, create a representativeness gap. I model Biden support, a binary outcome variable to express whether a voter voted Biden or not, as a logistic function with no covariates, capturing the overall proportion of support in the population. The outcome values ‘Yes’ means respondent supports Biden and ‘No’ for non-supporters.
 
 $$
 \text{logit}(\Pr(Y = 1 \mid X_1, X_2, \dots, X_k)) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_k X_k
@@ -32,3 +33,29 @@ $$
 $$
 \hat{Y} = \text{logit}^{-1}(-0.32) = \frac{1}{1 + e^{0.32}} \approx 0.42
 $$
+
+```{r}
+# Create a nicely formatted table
+fit_biden |> tidy(conf.int = TRUE) |>
+  gt() |>
+  fmt_number(
+    columns = c(estimate, std.error, statistic, conf.low, conf.high),
+    decimals = 2
+  ) |>
+  fmt_scientific(
+    columns = p.value,
+    decimals = 2
+  ) |>
+  cols_label(
+    term = "Term",
+    estimate = "Estimate",
+    std.error = "Std. Error",
+    statistic = "Z-value",
+    p.value = "P-value",
+    conf.low = "Conf. Low",
+    conf.high = "Conf. High"
+  ) |>
+  tab_header(
+    title = "Logistic Regression Model Summary"
+  )
+```
