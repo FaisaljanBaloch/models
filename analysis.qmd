@@ -9,9 +9,16 @@ execute:
 ```{r}
 #| message: false
 library(tidyverse)
+library(tidymodels)
+library(broom)
 
 poll_data <- tibble(biden = as.factor(c(rep("Yes", 655), rep("No", 904)))) |>
   slice_sample(prop = 1)
 ```
 
-U.S Elections are more about a competition between Republication and Democratic parties than general elections. Using the data of voters in the 2024 U.S. presidential election, I seek to predict what proportion of all votes will be cast for Joe Biden in November election.
+U.S Elections are more about a competition between Republication and Democratic parties than general elections. Using the data of voters in the 2024 U.S. presidential election, I seek to predict what proportion of all votes will be cast for Joe Biden in November election. While samples containing some certain groups by age or region than their share of the population, create a representativeness gap.
+
+$$
+\text{logit}(\Pr(Y = 1 \mid X_1, X_2, \dots, X_k)) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_k X_k
+$$
+
